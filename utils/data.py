@@ -44,9 +44,11 @@ class McePhaseDataset(Dataset):
         end_padding_num = max(0, end_index-index[1])
         imgs = []
         seed = int(time.time()) % 10000
-        transform = A.Compose([
+        transform = A.Compose(
+            [
             A.RandomResizedCrop(height=256, width=256, scale=(0.8, 1.2)),
-            A.Rotate(limit=30, border_mode=cv2.BORDER_CONSTANT, value=0),]
+            A.Rotate(limit=2, border_mode=cv2.BORDER_CONSTANT, value=0),
+            ]
         )
         resize = torchvision.transforms.Resize(256)
         for i in range(max(start_index, index[0]), min(end_index+1, index[1]+1)):
