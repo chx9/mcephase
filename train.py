@@ -3,22 +3,41 @@ from torch import nn
 from utils.data import McePhaseDataset
 from torch.utils.data import DataLoader
 from model.mcephase import McePhase
+from utils import read_config_file
 import torch.optim.lr_scheduler as lr_scheduler
-batch_size = 2
-num_workers = 1
-device = 'cuda'
-train_info_path = 'train_info.json'
-test_info_path = 'train_info.json'
+num_workers = 4
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+config_path = './config.json'
+config = read_config_file(config_path) 
+# train intervals
+checkpoint_interval = config['train']['checkpoint_interval']
+log_interval = config['train']['log_interval']
+# hyper params
+batch_size = config['train']['batch_size']
+lr = config['train']['lr']
+num_workers = config['data']['num_workers']
+train_info_path = config['train']['train_info_path']
+test_info_path = config['test']['test_info_path']
+epochs = config['train']['epochs']
+
+# dataloader
 train_data = McePhaseDataset(info_path=train_info_path)
-test_data = McePhaseDataset(info_path=test_info_path)
+test_data = McePhaseDataset(info_path=test_info_path, is_train=False)
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=True)
-test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=True)
+test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=True,)
+
+# model
 model = McePhase().to(device)
 
+# loss function
 criterion = nn.MSELoss()
-num_epochs, lr, wd, device = 100, 5e-5, 1e-3, device
-trainer = torch.optim.Adam(model.parameters(), lr=lr)
-scheduler = lr_scheduler.StepLR(trainer, step_size=50, gamma=0.1)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
+
+
+
+
 def cal_testloss(model, test_loader, loss_fn):
     loss_sum = torch.zeros(1).to(device)
     model.eval()
@@ -41,11 +60,11 @@ def train_batch(model, X, y, loss_fn, trainer, device):
     l.backward()
     trainer.step()
     return l
-for epoch in range(num_epochs):
+for epoch in range(epochs):
     batch_loss_sum = torch.zeros(1).to(device)
-    # model.lstm.hidden_state = None
+    model.lstm.hidden_state = None
     for i, (features, labels) in enumerate(train_loader):
-        loss = train_batch(model, features, labels, criterion, trainer, device) 
+        loss = train_batch(model, features, labels, criterion, optimizer, device) 
         batch_loss_sum += loss
         if i % 10 == 0:
             print(f'epoch {epoch}, {i} train_loss {batch_loss_sum.item() / (i+1)}')

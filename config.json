@@ -1,0 +1,30 @@
+{
+    "data":{
+        "num_workers": 4,
+        "crop_size": 128,
+        "seq_len": 30,
+        "root_dir": "frames"
+    },
+    "train":{
+        "batch_size":4,
+        "lr":1e-4,
+        "epochs":50,
+        "checkpoint_interval": 5,
+        "log_interval":10,
+        "train_info_path": "train_info.json"
+    },
+    "test":{
+        "batch_size":4,
+        "checkpoint_interval": 10,
+        "log_interval":10,
+        "test_info_path": "test_info.json"
+    },
+    "model_params":{
+        "latent_dim":512,
+        "hidden_size":256,
+        "lstm_layers":2,
+        "bidirectional": true,
+        "alpha":0.0,
+        "gamma":0.025
+    }
+}
