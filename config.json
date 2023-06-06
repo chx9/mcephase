@@ -8,7 +8,7 @@
     "train":{
         "batch_size":4,
         "lr":1e-4,
-        "epochs":100,
+        "epochs":300,
         "checkpoint_interval": 20,
         "train_info_path": "train_info.json"
     },
@@ -16,7 +16,7 @@
         "batch_size":4,
         "checkpoint_interval": 20,
         "test_info_path": "test_info.json",
-        "test_interval": 10
+        "test_interval": 5
     },
     "model_params":{
         "latent_dim":512,
