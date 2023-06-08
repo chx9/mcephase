@@ -1,4 +1,6 @@
 import torch
+from datetime import datetime
+import os
 import os.path as osp
 import os
 from torch import nn
@@ -33,13 +35,18 @@ train_data = McePhaseDataset(info_path=train_info_path)
 test_data = McePhaseDataset(info_path=test_info_path, is_train=False)
 train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=True)
 test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=True,)
-writer = SummaryWriter()
+# writer = SummaryWriter()
+now = datetime.now()
+now_str = now.strftime("%Y%m%d-%H%M%S")
+dir_name = os.path.join("runs", now_str)
+os.makedirs(dir_name, exist_ok=True)
+writer_train = SummaryWriter(os.path.join(dir_name, "train"))
+writer_test = SummaryWriter(os.path.join(dir_name, "test"))
 # model
-
-model = AttentionMcePhase().to(device)
+model = AttentionMcePhase(n_features=1024).to(device)
 # loss function
 criterion = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-3)
 scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 resume_epoch = 0
 if resume:
@@ -70,11 +77,12 @@ for epoch in range(resume_epoch, resume_epoch+epochs):
         loss, pred = forward_step(model, x, y, criterion, mode='train')
         loss.backward()
         optimizer.step()
-        writer.add_scalar('train_step_loss', loss.item(), epoch*(len(train_dataloader)+i))
+        # writer.add_scalar('train_step_loss', loss.item(), epoch*(len(train_dataloader)+i))
         epoch_loss += loss.item()
 
     print('='*20)
-    writer.add_scalar('epoch_train_loss', epoch_loss/len(train_dataloader), epoch+1)
+    # writer.add_scalar('loss/epoch_train_loss', epoch_loss/len(train_dataloader), epoch+1)
+    writer_train.add_scalar('loss', epoch_loss/len(train_dataloader), epoch+1)
     print('train epoch: {}, loss:{}'.format(epoch+1, epoch_loss/len(train_dataloader)))
     print('='*20)
       # validation 
@@ -88,7 +96,8 @@ for epoch in range(resume_epoch, resume_epoch+epochs):
             epoch_loss += loss.item()
         # epoch loss
         print('*'*20)
-        writer.add_scalar('epoch_test_loss', epoch_loss/len(test_dataloader), epoch+1)
+        # writer.add_scalar('loss/epoch_test_loss', epoch_loss/len(test_dataloader), epoch+1)
+        writer_test.add_scalar('loss', epoch_loss/len(test_dataloader), epoch+1)
         print('test epoch: {}, loss:{}'.format(epoch+1, epoch_loss/len(test_dataloader)))
         print('*'*20)
     
@@ -103,3 +112,6 @@ for epoch in range(resume_epoch, resume_epoch+epochs):
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': loss.item(),
                     }, checkpoint_path)
+
+writer_train.close()
+writer_test.close()

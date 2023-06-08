@@ -16,7 +16,7 @@
         "batch_size":4,
         "checkpoint_interval": 20,
         "test_info_path": "test_info.json",
-        "test_interval": 5
+        "test_interval": 1
     },
     "model_params":{
         "latent_dim":512,
