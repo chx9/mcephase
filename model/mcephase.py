@@ -10,50 +10,21 @@ from .deeplab import AttentionDeeLabv3p
 
 seq_len = 30
 n_feature = 1024
-
-class Encoder(nn.Module):
-    def __init__(self, n_features, hidden_dim):
-        super(Encoder, self).__init__()
-
-        self.hidden_dim = hidden_dim
-
-        self.rnn1 = nn.LSTM(
-            input_size=n_features,
-            hidden_size=self.hidden_dim,
-            num_layers=1,
-            batch_first=True,
-            bidirectional=True
-        )
-
-        self.hidden_layer = nn.Linear(hidden_dim*2, hidden_dim)
-        self.cell_layer = nn.Linear(hidden_dim*2, hidden_dim)
-        self.dropout = nn.Dropout(0.5)
-
-    def forward(self, x):
-        x, (hidden, cell) = self.rnn1(x)
-
-        x = self.dropout(x)
-        # Concatenate the hidden states and cell states from both directions
-        hidden = torch.cat(
-            (hidden[0:hidden.size(0):2], hidden[1:hidden.size(0):2]), 2)
-        cell = torch.cat((cell[0:cell.size(0):2], cell[1:cell.size(0):2]), 2)
-
-        # Reduce the dimension of the hidden states and cell states
-        hidden = self.hidden_layer(hidden)
-        cell = self.cell_layer(cell)
-
-        return x, hidden, cell
-
+output_size = 1  # output size = 1 to predict the mce phase score, ES=0 ED=1
+enc_num_layer = 2 
+dec_num_layer = 1
+enc_hidden = 128
+dec_hidden = 128
 
 class Attention(nn.Module):
-    def __init__(self, hidden_dim):
+    def __init__(self, enc_hidden, dec_hidden):
         """
            因为encoder是bidirectional的,所以他是2*hidden_dim
         """
         super(Attention, self).__init__()
         # hidden_dim*2: output_enc + hiddim_dim: hidden
-        self.attn = nn.Linear(hidden_dim*3, hidden_dim, bias=False)
-        self.v = nn.Linear(hidden_dim, 1, bias=False)
+        self.attn = nn.Linear((enc_hidden * 2) + dec_hidden, dec_hidden, bias=False)
+        self.v = nn.Linear(dec_hidden, 1, bias=False)
 
     def forward(self, s, enc_output):
         """
@@ -72,19 +43,54 @@ class Attention(nn.Module):
         return context, soft_attn_weights
 
 
+class Encoder(nn.Module):
+    def __init__(self, n_features, enc_hidden, dec_hidden, enc_num_layer):
+        super(Encoder, self).__init__()
+
+        self.enc_hidden = enc_hidden
+        self.dec_hidden = dec_hidden
+        self.rnn1 = nn.LSTM(
+            input_size=n_features,
+            hidden_size=self.enc_hidden,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=True
+        )
+
+        self.hidden_layer = nn.Linear(enc_hidden*2, dec_hidden)
+        self.cell_layer = nn.Linear(enc_hidden*2, dec_hidden)
+        self.dropout = nn.Dropout(0.5)
+
+    def forward(self, x):
+        x, (hidden, cell) = self.rnn1(x)
+
+        x = self.dropout(x)
+        # Concatenate the hidden states and cell states from both directions
+        hidden = torch.cat(
+            (hidden[0:hidden.size(0):2], hidden[1:hidden.size(0):2]), 2)
+        cell = torch.cat((cell[0:cell.size(0):2], cell[1:cell.size(0):2]), 2)
+
+        # Reduce the dimension of the hidden states and cell states
+        hidden = self.hidden_layer(hidden)
+        cell = self.cell_layer(cell)
+
+        return x, hidden, cell
+
+
+
 class Decoder(nn.Module):
-    def __init__(self, n_features, hidden_dim, output_size, num_layers):
+    def __init__(self, n_features,enc_hidden, dec_hidden, output_size, dec_num_layers):
         """
           the input size 
         """
         super(Decoder, self).__init__()
-        self.hidden_dim = hidden_dim
+        self.dec_hidden = dec_hidden
         self.output_size = output_size
-        self.num_layers = num_layers
-        self.attention = Attention(hidden_dim)
-        self.lstm = nn.LSTM(n_features + hidden_dim*2,
-                            hidden_dim, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_dim, output_size)
+        self.dec_num_layers = dec_num_layers
+        self.attention = Attention(enc_hidden, dec_hidden)
+        self.lstm = nn.LSTM(n_features + dec_hidden*2,
+                            dec_hidden, dec_num_layers, batch_first=True)
+        self.fc = nn.Linear(dec_hidden, output_size)
         self.dropout = nn.Dropout(0.5)
 
     def forward(self, x, enc_output, hidden, cell):
@@ -98,11 +104,11 @@ class Decoder(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-    def __init__(self, n_features, hidden_dim) -> None:
+    def __init__(self, n_features, enc_hidden, dec_hidden) -> None:
         super(Seq2Seq, self, ).__init__()
-        self.encoder = Encoder(n_features, hidden_dim)
-        self.decoder = Decoder(n_features, hidden_dim,
-                               output_size=1, num_layers=1)
+        self.encoder = Encoder(n_features, enc_hidden, dec_hidden, enc_num_layer=enc_num_layer)
+        self.decoder = Decoder(n_features, enc_hidden, dec_hidden,
+                               output_size=output_size, dec_num_layers=dec_num_layer)
 
     def forward(self, source):
         batch_size, seq_len, _ = source.shape
@@ -117,7 +123,7 @@ class Seq2Seq(nn.Module):
 
 
 class AttentionMcePhase(nn.Module):
-    def __init__(self, n_features=n_feature, hidden_dim=512, output_dim=1):
+    def __init__(self, n_features=n_feature, enc_hidden=512, dec_hidden=512, output_dim=1):
         super(AttentionMcePhase, self).__init__()
         self.resnet18 = models.resnet18(
             weights=models.ResNet18_Weights.DEFAULT)
@@ -125,7 +131,7 @@ class AttentionMcePhase(nn.Module):
             self.resnet18.fc.in_features, n_features
         )
         self.bn1 = nn.BatchNorm1d(n_features)
-        self.seq2seq = Seq2Seq(n_features=n_features, hidden_dim=hidden_dim)
+        self.seq2seq = Seq2Seq(n_features=n_features, enc_hidden=enc_hidden, dec_hidden=dec_hidden)
 
     def forward(self, x):
         batch_size, timesteps, channel_x, h_x, w_x = x.shape
