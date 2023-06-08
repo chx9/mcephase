@@ -165,3 +165,4 @@ frames/
 videos/
 *.pth
 runs/
+*.mov
