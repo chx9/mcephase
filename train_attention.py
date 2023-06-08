@@ -6,7 +6,7 @@ import os
 from torch import nn
 from utils.data import McePhaseDataset
 from torch.utils.data import DataLoader
-from model.mcephase import McePhase, AttentionMcePhase
+from model.mcephase import AttentionMcePhase
 from utils import read_config_file
 import torch.optim.lr_scheduler as lr_scheduler
 import argparse
@@ -46,7 +46,7 @@ writer_test = SummaryWriter(os.path.join(dir_name, "test"))
 model = AttentionMcePhase(n_features=1024).to(device)
 # loss function
 criterion = nn.MSELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-3)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
 scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 resume_epoch = 0
 if resume:
