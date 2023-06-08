@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from .deeplab import AttentionDeeLabv3p
 
 seq_len = 30
-
+n_feature = 1024
 
 class Encoder(nn.Module):
     def __init__(self, n_features, hidden_dim):
@@ -117,7 +117,7 @@ class Seq2Seq(nn.Module):
 
 
 class AttentionMcePhase(nn.Module):
-    def __init__(self, n_features, hidden_dim=512, output_dim=1):
+    def __init__(self, n_features=n_feature, hidden_dim=512, output_dim=1):
         super(AttentionMcePhase, self).__init__()
         self.resnet18 = models.resnet18(
             weights=models.ResNet18_Weights.DEFAULT)
@@ -135,4 +135,5 @@ class AttentionMcePhase(nn.Module):
         x = x.view(batch_size, timesteps, -1)
         batch_size, seq_len, _ = x.size()
         x = self.seq2seq(x)
+
         return x
