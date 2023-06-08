@@ -38,10 +38,11 @@ test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=True, num
 # writer = SummaryWriter()
 now = datetime.now()
 now_str = now.strftime("%Y%m%d-%H%M%S")
-dir_name = os.path.join("runs", now_str)
+dir_name = os.path.join("runs/train_test", now_str)
 os.makedirs(dir_name, exist_ok=True)
 writer_train = SummaryWriter(os.path.join(dir_name, "train"))
 writer_test = SummaryWriter(os.path.join(dir_name, "test"))
+writer = SummaryWriter()
 # model
 model = AttentionMcePhase(n_features=1024).to(device)
 # loss function
@@ -51,9 +52,9 @@ scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
 resume_epoch = 0
 if resume:
 
-    checkpoint_files = os.listdir('checkpoints_attention')
+    checkpoint_files = os.listdir('checkpoints')
     checkpoint_file = sorted(checkpoint_files, key=lambda x: int(x.split('_')[-1][:-4]))[-1]
-    checkpoint = torch.load(osp.join('checkpoints_attention', checkpoint_file))
+    checkpoint = torch.load(osp.join('checkpoints', checkpoint_file))
 
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -83,6 +84,7 @@ for epoch in range(resume_epoch, resume_epoch+epochs):
     print('='*20)
     # writer.add_scalar('loss/epoch_train_loss', epoch_loss/len(train_dataloader), epoch+1)
     writer_train.add_scalar('loss', epoch_loss/len(train_dataloader), epoch+1)
+    writer.add_scalar('train_loss', epoch_loss/len(train_dataloader), epoch+1)
     print('train epoch: {}, loss:{}'.format(epoch+1, epoch_loss/len(train_dataloader)))
     print('='*20)
       # validation 
@@ -98,14 +100,15 @@ for epoch in range(resume_epoch, resume_epoch+epochs):
         print('*'*20)
         # writer.add_scalar('loss/epoch_test_loss', epoch_loss/len(test_dataloader), epoch+1)
         writer_test.add_scalar('loss', epoch_loss/len(test_dataloader), epoch+1)
+        writer.add_scalar('test_loss', epoch_loss/len(test_dataloader), epoch+1)
         print('test epoch: {}, loss:{}'.format(epoch+1, epoch_loss/len(test_dataloader)))
         print('*'*20)
     
     if (epoch+1) % checkpoint_interval == 0:
         # save model
-        if not osp.exists(osp.join('checkpoints_attention')):
-             os.mkdir(osp.join('checkpoints_attention'))
-        checkpoint_path =  osp.join('checkpoints_attention', 'epoch_{}.pth'.format(epoch+1))
+        if not osp.exists(osp.join('checkpoints')):
+             os.mkdir(osp.join('checkpoints'))
+        checkpoint_path =  osp.join('checkpoints', 'epoch_{}.pth'.format(epoch+1))
         torch.save({
                     'epoch': epoch+1,
                     'model_state_dict': model.state_dict(),
@@ -115,3 +118,4 @@ for epoch in range(resume_epoch, resume_epoch+epochs):
 
 writer_train.close()
 writer_test.close()
+writer.close()

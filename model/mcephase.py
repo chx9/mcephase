@@ -7,6 +7,7 @@ from torch import nn
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from .deeplab import AttentionDeeLabv3p
+
 seq_len = 30
 
 
