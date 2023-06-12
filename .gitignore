@@ -166,3 +166,5 @@ videos/
 *.pth
 runs/
 *.mov
+deleted/
+figures/

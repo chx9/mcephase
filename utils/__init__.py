@@ -1,5 +1,6 @@
 import json,cv2
 from torchvision import transforms
+import numpy as np
 from PIL import Image
 import torchvision
 def read_config_file(file_path):
@@ -27,3 +28,18 @@ def read_mov(mov_file_path):
         frames.append(im)
     cap.release()
     return frames
+
+class Accumulator:
+    def __init__(self, length):
+        self.length = length
+        self.data = np.zeros((length,))
+        self.counts = np.zeros((length,))
+    
+    def add(self, values, index):
+        assert values.shape[0] <= self.length, f"Expected values of shape ({self.length},) or less, but got shape {values.shape}"
+        length = min(self.length, values.shape[0])
+        self.data[index:index+length] += values[:length]
+        self.counts[index:index+length] += 1
+    
+    def mean(self):
+        return self.data/self.counts

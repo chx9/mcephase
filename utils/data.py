@@ -38,7 +38,7 @@ class McePhaseDataset(Dataset):
         self.augmentation = A.Compose([
             A.RandomResizedCrop(
                 height=crop_size, width=crop_size, scale=(0.8, 1.2)),
-            A.Rotate(limit=2, border_mode=cv2.BORDER_CONSTANT, value=0),
+            A.Rotate(limit=30, border_mode=cv2.BORDER_CONSTANT, value=0),
         ])
 
     def __len__(self):
@@ -48,7 +48,10 @@ class McePhaseDataset(Dataset):
         patient = self.patients[index]
         index = self.info[patient]['index']
         label = self.info[patient]['label']
-        selected_index = random.randint(index[0], index[1])
+        begin = index[0] + seq_len//2 - 1
+        end = index[1] - seq_len//2
+        selected_index = random.randint(min(begin, end),max(begin, end))
+        # selected_index = random.randint(index[0] , index[1]) # add padding
         start_index = selected_index - seq_len // 2 + 1
         end_index = selected_index + seq_len // 2
         start_padding_num = max(0, index[0]-start_index)
