@@ -21,7 +21,7 @@ matplotlib.use('TkAgg')
 tol = 1e-8
 seq_len = 30
 device = 'cuda'
-test_info = read_config_file('test_info.json')
+test_info = read_config_file('train_info.json')
 root_dir = 'frames'
 patients = list(test_info.keys())
 # idx = 8
@@ -67,7 +67,7 @@ for idx in range(len(patients)):
 
 
     true_ed = np.where(np.isclose(labels, 1.0, rtol=tol, atol=tol))[0]
-    true_es = np.where(np.isclose(bels, 0.0, rtol=tol, atol=tol))[0]
+    true_es = np.where(np.isclose(labels, 0.0, rtol=tol, atol=tol))[0]
     print('='*20)
     print(true_es[1:-1])
     print(ES)
