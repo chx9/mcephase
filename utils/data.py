@@ -93,7 +93,7 @@ class McePhaseDataset(Dataset):
 
 
 if __name__ == '__main__':
-    info_path = '/home/u/Desktop/mcephase/train_info.json'
+    info_path = '/home/u/Desktop/mcephase/data/train_info.json'
     data = McePhaseDataset()
     img, label = next(iter(data))
     exit()

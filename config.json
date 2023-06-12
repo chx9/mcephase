@@ -10,12 +10,12 @@
         "lr":1e-4,
         "epochs":300,
         "checkpoint_interval": 20,
-        "train_info_path": "train_info.json"
+        "train_info_path": "data/train_info.json"
     },
     "test":{
         "batch_size":4,
         "checkpoint_interval": 20,
-        "test_info_path": "test_info.json",
+        "test_info_path": "data/test_info.json",
         "test_interval": 1
     },
     "model_params":{

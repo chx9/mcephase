@@ -21,7 +21,7 @@ matplotlib.use('TkAgg')
 tol = 1e-8
 seq_len = 30
 device = 'cuda'
-test_info = read_config_file('train_info.json')
+test_info = read_config_file('data/train_info.json')
 root_dir = 'frames'
 patients = list(test_info.keys())
 # idx = 8
