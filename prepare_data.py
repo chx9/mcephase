@@ -19,21 +19,24 @@ def extract_frames_from_video(video_path):
     video_capture.release()
     return frames
 
-upsilon = 2
-delta = 1/2
+tau = 3
+delta = 1
+amp = 0.2
 def cal_systolic(ed, es):
     """
         [ed, es)
     """
     x = np.linspace(ed, es-1, es-ed)
-    y = np.power( np.fabs(x-es) / np.fabs(es-ed), 3)
+    y = np.power( np.fabs(x-(es)) / np.fabs(es-ed), tau)
+    y[0] = 1+amp
     return y
 def cal_diastolic(es, ed):
     """
         [es, ed)
     """
     x = np.linspace(es, ed-1, ed-es)
-    y = 0.8* np.power( np.fabs(x-es) / np.fabs(es-(ed+1)), 1/3)
+    y = delta* np.power( np.fabs(x-(es)) / np.fabs(es-(ed)), 1/tau)
+    y[0] = -amp
     return y
 root_dir = 'videos'
 videos = os.listdir(root_dir)
@@ -63,9 +66,9 @@ for video in videos:
             is_systolic = True
             y = np.concatenate([y, y_])
     if is_systolic:
-        y = np.append(y, 1)
+        y = np.append(y, 1 + amp)
     else:
-        y = np.append(y, 0)
+        y = np.append(y, -amp)
     frame_info[video]['index'] = [frame_ids[0], frame_ids[-1]]
     frame_info[video]['label'] = y.tolist()
 frame_info = dict(frame_info)

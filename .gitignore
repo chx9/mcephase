@@ -168,3 +168,5 @@ runs/
 *.mov
 deleted/
 figures/
+results/
+removed/

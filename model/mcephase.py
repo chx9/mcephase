@@ -6,15 +6,19 @@ import torchvision.transforms as transforms
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
+from utils import read_config_file
 from .deeplab import AttentionDeeLabv3p
+config_path = '/home/u/Desktop/mcephase/config.json'
+config = read_config_file(config_path) 
 
-seq_len = 30
+# seq_len = 40
+seq_len = config['data']['seq_len']
 n_feature = 1024
 output_size = 1  # output size = 1 to predict the mce phase score, ES=0 ED=1
 enc_num_layer = 2 
 dec_num_layer = 1
-enc_hidden = 128
-dec_hidden = 128
+enc_hidden = 512
+dec_hidden = 512
 
 class Attention(nn.Module):
     def __init__(self, enc_hidden, dec_hidden):

@@ -1,0 +1,14 @@
+# deleted
+3c_chen lan fang08053977_rest.mov
+3c_chen bo song 03878120_atp.mov
+3c_chen lan fang08053977_rest.mov
+3c_heruohua09574203_atp.mov
+3c_heruohua09574203_rest.mov
+3c_heyongchun12363951_atp.mov
+3c_jiang shui zhen13145019_rest.mov
+3c_liu hui shi 08188062_atp.mov
+3c_wang dong qing 02627531_atp.mov
+humeilian_rest_08631800_cropped.MOV
+jiangshuizhen_atp_13145019_cropped.MOV
+panjvfen_atp_08251182_cropped.MOV
+3c_heyongchun12363951_rest.mov

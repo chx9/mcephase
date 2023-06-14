@@ -2,7 +2,7 @@
     "data":{
         "num_workers": 4,
         "crop_size": 128,
-        "seq_len": 30,
+        "seq_len": 100,
         "root_dir": "frames"
     },
     "train":{
