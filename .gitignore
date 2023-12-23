@@ -3,6 +3,7 @@
 *.ipynb
 frames/
 videos/
+results100/
 *.pth
 runs/
 *.mov
