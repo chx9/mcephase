@@ -10,7 +10,7 @@ we simulated left ventricular volume as the ground truth to detect ED and ES in 
 
 $t_{ed}$ represents  the end-diastolic frame, where the value is defined as 1.2. $t_{es}$ denotes the end-systolic frame, and the value  defined as -0.2. $\tau$ is a constant set to 3.
 
-![ground truth](<imgs/ground truth.png>)
+![ground truth](<imgs/ground_truth.png>)
 # model
 The MCE recognition model implemented in this project is based on a Seq2Seq (Sequence-to-Sequence) architecture, incorporating Convolutional Neural Networks (CNNs), Long Short-Term Memory (LSTM) networks, and attention mechanism. The model is specifically designed to accurately identify the end-systolic frames in myocardial contrast echocardiogram(MCE).
 
@@ -35,3 +35,6 @@ ES error distribution
 ES error distribution
 
 ![results](imgs/ED.png)
+
+compared with other models, seq2seq without attention and bi-LSTM.
+![results](imgs/compare.png)
